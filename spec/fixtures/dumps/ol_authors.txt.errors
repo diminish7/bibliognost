@@ -1,0 +1,2 @@
+/type/author  /authors/OL10000000A  1 2024-11-16T10:00:00.000000  {"type": {"key": "/type/author"}, "name": "Patricia Pagac", "key": "/authors/OL10000000A", "source_records": ["bwb:1000000000000"], "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2024-11-16T10:00:00.000000"}, "last_modified": {"type": "/type/datetime", "value": "2024-11-16T10:00:00.000000"}}
+	JSON::ParserError - unexpected token at 'type/author  /authors/OL10000000'

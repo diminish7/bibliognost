@@ -28,7 +28,9 @@ require 'rspec/rails'
 # Checks for pending migrations and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove these lines.
 begin
-  ActiveRecord::Migration.maintain_test_schema!
+  # If the rails helper is being loaded in development, it's for a generator. If we're generating
+  # a new model and its migration, it won't have run by the time its generating the spec for it.
+  ActiveRecord::Migration.maintain_test_schema! unless Rails.env.development?
 rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
@@ -67,4 +69,5 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+  config.include FactoryBot::Syntax::Methods
 end
