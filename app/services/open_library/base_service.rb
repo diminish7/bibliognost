@@ -77,5 +77,13 @@ module OpenLibrary
       Rails.logger.info "Upserting #{upsert_attrs.length} #{model_name} records."
       model_class.upsert_all(upsert_attrs, unique_by: :external_identifier, returning: false)
     end
+
+    def connection
+      ActiveRecord::Base.connection
+    end
+
+    def quote(val)
+      connection.quote(val)
+    end
   end
 end

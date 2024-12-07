@@ -18,11 +18,11 @@ RSpec.describe OpenLibrary::AuthorService, type: :service do
   end
 
   describe '#call' do
-    subject(:call) { service.call }
+    subject(:call_it) { service.call }
 
     context 'with no records' do
       it 'inserts all records' do
-        expect { call }.to change(Author, :count).by(10)
+        expect { call_it }.to change(Author, :count).by(10)
 
         expected_authors.each do |external_identifier, name|
           expect(Author.exists?(external_identifier:, name:)).to be true
@@ -37,7 +37,7 @@ RSpec.describe OpenLibrary::AuthorService, type: :service do
       end
 
       it 'upserts existing records' do
-        expect { call }.to change(Author, :count).by(8)
+        expect { call_it }.to change(Author, :count).by(8)
 
         expected_authors.each do |external_identifier, name|
           expect(Author.exists?(external_identifier:, name:)).to be true

@@ -19,7 +19,7 @@ RSpec.describe Author, type: :model do
       }
     end
 
-    it "generates an author" do
+    it "generates attributes for an author" do
       expect(attributes).to include(name:, external_identifier:)
     end
   end
