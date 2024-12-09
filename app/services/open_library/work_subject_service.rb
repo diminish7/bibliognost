@@ -1,11 +1,13 @@
 module OpenLibrary
-  # Service for importing works (books, novels, novellas, short stories, poems) from Open Library
+  # Service for importing work/subject relationships from Open Library
   class WorkSubjectService < BaseService
     private
 
     # Override from OpenLibrary::BaseService
     def valid?(attrs)
-      attrs[:work_external_identifier].present? && attrs[:subjects].present?
+      # NOTE: Check title also - not needed for `work_subjects`, but without it, the `works`
+      #       record was skipped
+      %i[ title work_external_identifier subjects ].all? { |attr| attrs[attr].present? }
     end
 
     # Override from OpenLibrary::BaseService
@@ -22,10 +24,12 @@ module OpenLibrary
         quoted_work_external_identifier = quote(work_external_identifier)
 
         subjects.map do |subject_name|
+          quoted_subject = quote(subject_name)
+
           <<~SQL.squish
             (
               (SELECT id FROM works WHERE external_identifier = #{quoted_work_external_identifier}),
-              #{subject_id_for(subject_name)},
+              (SELECT id FROM subjects WHERE name = #{quoted_subject})
               NOW(),
               NOW()
             )
@@ -40,14 +44,6 @@ module OpenLibrary
         #{insert_lines.join(', ')}
         ON CONFLICT DO NOTHING
       SQL
-    end
-
-    def subject_id_for(name)
-      subject_ids_by_name[name] ||= Subject.create!(name:).id
-    end
-
-    def subject_ids_by_name
-      @subject_ids_by_name ||= Subject.pluck(:name, :id).to_h
     end
   end
 end

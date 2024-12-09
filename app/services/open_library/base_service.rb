@@ -75,7 +75,11 @@ module OpenLibrary
 
     def upsert!
       Rails.logger.info "Upserting #{upsert_attrs.length} #{model_name} records."
-      model_class.upsert_all(upsert_attrs, unique_by: :external_identifier, returning: false)
+      model_class.upsert_all(upsert_attrs, unique_by: upsert_unique_by_field, returning: false)
+    end
+
+    def upsert_unique_by_field
+      :external_identifier
     end
 
     def connection

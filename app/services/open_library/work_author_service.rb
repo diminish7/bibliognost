@@ -1,11 +1,15 @@
 module OpenLibrary
-  # Service for importing works (books, novels, novellas, short stories, poems) from Open Library
+  # Service for importing work/author relationships from Open Library
   class WorkAuthorService < BaseService
     private
 
     # Override from OpenLibrary::BaseService
     def valid?(attrs)
-      attrs[:work_external_identifier].present? && attrs[:author_external_identifiers].present?
+      # NOTE: Check title also - not needed for `work_authors`, but without it, the `works`
+      #       record was skipped
+      %i[ title work_external_identifier author_external_identifiers ].all? do |attr|
+        attrs[attr].present?
+      end
     end
 
     # Override from OpenLibrary::BaseService
