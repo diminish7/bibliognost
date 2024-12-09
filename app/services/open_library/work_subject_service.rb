@@ -1,53 +1,46 @@
 module OpenLibrary
-  # Service for importing works (books, novels, novellas, short stories, poems) from Open Library
+  # Service for importing work/subject relationships from Open Library
   class WorkSubjectService < BaseService
     private
 
     # Override from OpenLibrary::BaseService
     def valid?(attrs)
-      attrs[:work_external_identifier].present? && attrs[:subjects].present?
+      %i[ work_external_identifier subjects ].all? { |attr| attrs[attr].present? }
     end
 
     # Override from OpenLibrary::BaseService
-    # This needs to use SQL instead of Rails's upsert to avoid re-querying works
-    def upsert!
-      Rails.logger.info "Upserting #{upsert_attrs.length} #{model_name} records."
-      sql = build_sql(upsert_attrs)
-      ActiveRecord::Base.connection.execute(sql)
-    end
+    # Convert work external identifier and subject names into collection of work and subject IDs
+    # Note that some may not exist because the work or subject was invalid for some reason, so
+    # this filters out invalid ones as well.
+    def transform_upsert_attrs
+      batch_work_ids = query_batch_work_ids
+      batch_subject_ids = query_batch_subject_ids
 
-    def build_sql(upsert_attrs)
-      insert_lines = upsert_attrs.flat_map do |attrs|
+      upsert_attrs.flat_map do |attrs|
         work_external_identifier, subjects = attrs.values_at(:work_external_identifier, :subjects)
-        quoted_work_external_identifier = quote(work_external_identifier)
+        work_id = batch_work_ids[work_external_identifier]
+        next if work_id.nil?
 
-        subjects.map do |subject_name|
-          <<~SQL.squish
-            (
-              (SELECT id FROM works WHERE external_identifier = #{quoted_work_external_identifier}),
-              #{subject_id_for(subject_name)},
-              NOW(),
-              NOW()
-            )
-          SQL
-        end
-      end
+        subject_ids = subjects.filter_map { |subject_name| batch_subject_ids[subject_name] }
+        next if subject_ids.blank?
 
-      <<~SQL.squish
-        INSERT INTO work_subjects
-        (work_id, subject_id, created_at, updated_at)
-        VALUES
-        #{insert_lines.join(', ')}
-        ON CONFLICT DO NOTHING
-      SQL
+        subject_ids.map { |subject_id| { work_id:, subject_id: } }
+      end.compact
     end
 
-    def subject_id_for(name)
-      subject_ids_by_name[name] ||= Subject.create!(name:).id
+    # Override from OpenLibrary::BaseService
+    def upsert_unique_by_field
+      %i[ work_id subject_id ]
     end
 
-    def subject_ids_by_name
-      @subject_ids_by_name ||= Subject.pluck(:name, :id).to_h
+    def query_batch_work_ids
+      external_identifiers = upsert_attrs.map { |attrs| attrs[:work_external_identifier] }
+      Work.where(external_identifier: external_identifiers).pluck(:external_identifier, :id).to_h
+    end
+
+    def query_batch_subject_ids
+      names = upsert_attrs.flat_map { |attrs| attrs[:subjects] }.uniq
+      Subject.where(name: names).pluck(:name, :id).to_h
     end
   end
 end

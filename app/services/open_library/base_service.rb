@@ -74,8 +74,19 @@ module OpenLibrary
     end
 
     def upsert!
-      Rails.logger.info "Upserting #{upsert_attrs.length} #{model_name} records."
-      model_class.upsert_all(upsert_attrs, unique_by: :external_identifier, returning: false)
+      final_upsert_attrs = transform_upsert_attrs
+      Rails.logger.info "Upserting #{final_upsert_attrs.length} #{model_name} records."
+      model_class.upsert_all(final_upsert_attrs, unique_by: upsert_unique_by_field, returning: false)
+    end
+
+    # By default, this just returns the upsert attrs we've been collecting for the batch, but
+    # this can be overridden in subclasses to apply transformations if needed
+    def transform_upsert_attrs
+      upsert_attrs
+    end
+
+    def upsert_unique_by_field
+      :external_identifier
     end
 
     def connection

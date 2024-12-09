@@ -5,7 +5,7 @@ class WorkSubject < ApplicationRecord
   validates :work_id, uniqueness: { scope: :subject_id }
 
   def self.attributes_from_open_library_json(json)
-    work_external_identifier, subjects = json.values_at("key", "subjects")
+    title, work_external_identifier, subjects = json.values_at("title", "key", "subjects")
 
     { work_external_identifier:, subjects: }
   end

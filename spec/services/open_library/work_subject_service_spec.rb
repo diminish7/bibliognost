@@ -52,6 +52,9 @@ RSpec.describe OpenLibrary::WorkSubjectService, type: :service do
     works.each do |external_identifier, attrs|
       title = attrs[:title]
       create(:work, external_identifier:, title:)
+      attrs[:subjects].each do |name|
+        Subject.find_or_create_by!(name:)
+      end
     end
   end
 
@@ -60,7 +63,7 @@ RSpec.describe OpenLibrary::WorkSubjectService, type: :service do
 
     context 'with no records' do
       it 'inserts all records' do
-        expect { call_it }.to change(Subject, :count).by(16).and change(WorkSubject, :count).by(19)
+        expect { call_it }.to change(WorkSubject, :count).by(19)
 
         works.each do |external_identifier, attrs|
           subjects = attrs[:subjects]
@@ -74,19 +77,19 @@ RSpec.describe OpenLibrary::WorkSubjectService, type: :service do
       before do
         work = Work.find_by(external_identifier: "/works/OL10000000W")
         work.update!(subjects: [
-          create(:subject, name: "Essay"),
-          create(:subject, name: "Folklore")
+          Subject.find_by!(name: "Essay"),
+          Subject.find_by!(name: "Folklore")
         ])
         work = Work.find_by(external_identifier: "/works/OL10000008W")
         work.update!(subjects: [
-          create(:subject, name: "Short story"),
-          create(:subject, name: "Metafiction"),
-          create(:subject, name: "Fiction narrative")
+          Subject.find_by!(name: "Short story"),
+          Subject.find_by!(name: "Metafiction"),
+          Subject.find_by!(name: "Fiction narrative")
         ])
       end
 
       it 'upserts existing records' do
-        expect { call_it }.to change(Subject, :count).by(11).and change(WorkSubject, :count).by(14)
+        expect { call_it }.to change(WorkSubject, :count).by(14)
 
         works.each do |external_identifier, attrs|
           subjects = attrs[:subjects]
