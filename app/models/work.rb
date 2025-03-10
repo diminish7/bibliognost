@@ -1,6 +1,8 @@
 class Work < ApplicationRecord
   include HasExternalIdentifier
 
+  has_many :editions, dependent: :destroy
+
   has_many :work_subjects, dependent: :destroy
   has_many :subjects, through: :work_subjects
 
