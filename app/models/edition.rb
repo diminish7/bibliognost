@@ -8,6 +8,8 @@ class Edition < ApplicationRecord
   has_many :edition_authors, dependent: :destroy
   has_many :authors, through: :edition_authors
 
+  has_many_attached :covers
+
   validates :title, presence: true
 
   def self.attributes_from_open_library_json(json)

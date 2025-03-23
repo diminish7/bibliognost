@@ -19,4 +19,5 @@ Run the import services in the following order (Until I've added the parent serv
 7. Import publishers with `OpenLibrary::PublisherService.new(path/to/edition/dump).call`
 8. Import editions with `OpenLibrary::EditionService.new(path/to/edition/dump).call`
 9. Import edition/authors relationships with `OpenLibrary::EditionAuthorService.new(path/to/edition/dump).call`
-10. TODO: Import covers
+10. Import work covers with `OpenLibrary::WorkCoverService.new(path/to/works/dump).call`
+11. Import edition covers with `OpenLibrary::EditionCoverService.new(path/to/editions/dump).call`
